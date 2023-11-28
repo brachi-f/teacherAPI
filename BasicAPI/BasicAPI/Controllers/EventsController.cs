@@ -8,32 +8,52 @@ namespace BasicAPI.Controllers
     [ApiController]
     public class EventsController : ControllerBase
     {
-        private List<Event> events = new List<Event> { new Event { Id = 1, Title = "default event" } };
-        // GET: api/<EventsController>
-        [HttpGet]
-        public IEnumerable<Event> GetAllEvents()
+        private IDataContext context;
+
+        public EventsController(IDataContext dataContext)
         {
-            return events;
+            context = dataContext;
         }
 
         // GET: api/<EventsController>
-       // [HttpGet]
-        public IEnumerable<Event> GetAllEvents(int id)
+        [HttpGet]
+        public ActionResult Get()
         {
-            return events;
+            var filtered = context.Events;
+            return Ok(context.Events);
+        }
+
+        // GET: api/<EventsController>
+        [HttpGet("{id}")]
+        public ActionResult Get(int id)
+        {
+            var eve = context.Events.Find(e => e.Id == id);
+            if (eve is null)
+            {
+                return NotFound();
+            }
+            return Ok(eve);
         }
 
         // POST api/<EventsController>
         [HttpPost]
         public void Post([FromBody] Event newEvent)
         {
-            events.Add(new Event { Id = 2, Title = newEvent.Title, Description = newEvent.Description });
+            context.Events.Add(new Event { Id = 2, Title = newEvent.Title });
+
         }
 
         // PUT api/<EventsController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] Event newEvent)
+        public ActionResult Put(int id, [FromBody] Event newEvent)
         {
+            var eve = context.Events.Find(e => e.Id == id);
+            if (eve is null)
+            {
+                return NotFound();
+            }
+            eve.Title = newEvent.Title;
+            return Ok(eve);
             //TODO
             //find event by id
             //udpate event properties
@@ -43,8 +63,8 @@ namespace BasicAPI.Controllers
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
-            var eve = events.Find(e => e.Id == id);
-            events.Remove(eve);
+            var eve = context.Events.Find(e => e.Id == id);
+            context.Events.Remove(eve);
         }
     }
 }
